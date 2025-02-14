@@ -14,12 +14,12 @@ jobs:
     - name: Automatically update the deployed api with the latest changes
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        HOST: ${{ secrets.SERVER_IP }}
-        USERNAME: ${{ secrets.USERNAME }}
+        SSH_HOST: ${{ secrets.SSH_HOST }}
+        SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
       run: |
         echo "$SSH_PRIVATE_KEY" > deploy_key
         chmod 600 deploy_key
-        ssh -i deploy_key -o StrictHostKeyChecking=no $USERNAME@$HOST "\
+        ssh -i deploy_key -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST "\
           cd /app && \
           git pull origin main && \
           pip install -r requirements.txt && \
