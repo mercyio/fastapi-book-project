@@ -9,13 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: appleboy/ssh-action@master
-
     - name: Automatically update the deployed api with the latest changes
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        SSH_HOST: ${{ secrets.SSH_HOST }}
-        SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+      uses: appleboy/ssh-action@master
+
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
       run: |
         echo "$SSH_PRIVATE_KEY" > deploy_key
         chmod 600 deploy_key
