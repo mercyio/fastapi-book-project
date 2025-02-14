@@ -1,0 +1,27 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [ main ] 
+
+jobs:
+  deploy:   
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: appleboy/ssh-action@master
+
+    - name: Automatically update the deployed api with the latest changes
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        HOST: ${{ secrets.SERVER_IP }}
+        USERNAME: ${{ secrets.USERNAME }}
+      run: |
+        echo "$SSH_PRIVATE_KEY" > deploy_key
+        chmod 600 deploy_key
+        ssh -i deploy_key -o StrictHostKeyChecking=no $USERNAME@$HOST "\
+          cd /app && \
+          git pull origin main && \
+          pip install -r requirements.txt && \
+          systemctl restart fastapi \
+          sudo systemctl restart nginx"
