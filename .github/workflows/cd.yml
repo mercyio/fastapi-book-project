@@ -1,30 +1,25 @@
-name: CD Pipeline
-
+name: Deployment Pipeline
 on:
   push:
-    branches: [ main ] 
-
+    branches:
+      - main
 jobs:
-  deploy:   
+  deploy:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Deploy api
-      uses: actions/checkout@v4
-      
-    - name: Automatically update the deployed api with the latest changes
-      uses: appleboy/ssh-action@master
-
-      with:
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        script: |
-          echo "$SSH_PRIVATE_KEY" > deploy_key
-          chmod 600 deploy_key
-          ssh -i deploy_key -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST "\
-          cd /app && \
-          git pull origin main && \
-          pip install -r requirements.txt && \
-          systemctl restart fastapi \
-          sudo systemctl restart nginx"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Deploy application
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            mkdir -p ~/deploy
+            cd ~/deploy
+            git pull origin main #pull from the main branch
+            source .venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+            sudo systemctl restart fastapi
