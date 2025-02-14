@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Deploy api
+      uses: actions/checkout@v4
+      
     - name: Automatically update the deployed api with the latest changes
       uses: appleboy/ssh-action@master
 
@@ -16,10 +19,10 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USERNAME }}
-      run: |
-        echo "$SSH_PRIVATE_KEY" > deploy_key
-        chmod 600 deploy_key
-        ssh -i deploy_key -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST "\
+        script: |
+          echo "$SSH_PRIVATE_KEY" > deploy_key
+          chmod 600 deploy_key
+          ssh -i deploy_key -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST "\
           cd /app && \
           git pull origin main && \
           pip install -r requirements.txt && \
