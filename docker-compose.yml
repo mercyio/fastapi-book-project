@@ -1,18 +1,31 @@
-# docker-compose.yml
-version: "3.8"
 services:
   app:
+    container_name: fastapi-book-container
     build: .
-    container_name: fastapi-app
     ports:
-      - "8000:8000"
+      - "8800:8800"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "100k"
 
   nginx:
-    image: nginx:latest
-    container_name: fastapi-nginx
-    volumes:
-      - ./fastapi.conf:/etc/nginx/conf.d/default.conf
+    restart: unless-stopped
+    image: nginx
+    container_name: nginx
     ports:
-      - "80:80"
+      - "8080:8080"
+
+    volumes:
+      - ./fastapi.conf:/etc/fastapi.conf:ro
+
     depends_on:
       - app
+
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "100k"
