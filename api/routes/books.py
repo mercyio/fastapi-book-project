@@ -32,6 +32,12 @@ db.books = {
     ),
 }
 
+@router.get(
+    "/test", response_model=OrderedDict[int, Book], status_code=status.HTTP_200_OK
+)
+async def test() -> OrderedDict[int, Book]:
+    return db.get_books()
+
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_book(book: Book):
@@ -71,4 +77,8 @@ async def get_book(book_id: int) -> Book:
             content={"detail": "Book not found"}
         )
     return book
+
+
+
+
 
