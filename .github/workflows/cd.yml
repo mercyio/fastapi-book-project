@@ -18,7 +18,12 @@ jobs:
           script: |
             cd fastapi-book-project
             git pull origin main 
-            source .venv/bin/activate
+            python3 -m venv venv || exit 1
+            source venv/bin/activate || exit 1
+            pip install fastapi || exit 1
             pip install --upgrade pip
             pip install -r requirements.txt
-            sudo systemctl restart fastapi
+            sudo systemctl stop fastapi
+            killall uvicorn || echo “No existing process found”
+            nohup uvicorn main:app --host 0.0.0.0 --port 8080 > app.log 2>&1 &
+            echo “Application started successfully”
