@@ -1,48 +1,24 @@
-name: Continuous Deployment
-
+name: Deployment Pipeline
 on:
   push:
-    branches: [ main ]
-
+    branches:
+      - main
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Pull latest changes
-        run: |
-          echo "Pulling latest changes..."
-          cd fastapi-book-project
-          git fetch --all
-          git pull origin main
-
-
-      - name: Setup virtual environment
-        run: |
-          echo "Setting up virtual environment..."
-          python3 -m venv venv || exit 1
-          source venv/bin/activate || exit 1
-
-      - name: Install FastAPI
-        run: |
-          pip install fastapi || exit 1
-          echo "FastAPI installed successfully"
-
-      - name: Install dependencies
-        run: |
-          echo "Installing dependencies..."
-          pip install -r requirements.txt || exit 1
-
-      - name: Stop existing application
-        run: |
-          echo "Stopping existing application..."
-          killall uvicorn || echo "No existing process found"
-          echo "Application stopped successfully"
-
-      - name: Start application
-        run: |
-          echo "Starting application..."
-          nohup uvicorn main:app --host 0.0.0.0 --port 8080 > app.log 2>&1 &
-          echo "Application started successfully"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Deploy application
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd fastapi-book-project
+            git pull origin main 
+            source .venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+            sudo systemctl restart fastapi
