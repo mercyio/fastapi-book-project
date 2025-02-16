@@ -1,29 +1,60 @@
-name: Deployment Pipeline
+name: deploy
+
 on:
   push:
     branches:
       - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Deploy application
-        uses: appleboy/ssh-action@master
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          python-version: 3.11
+
+      # Deploy to server
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{secrets.SERVER_HOST}}
+          key: ${{secrets.SERVER_SSH_KEY}}
+          username: ${{secrets.SERVER_USERNAME}}
           script: |
-            cd fastapi-book-project
-            git pull origin main 
+            echo “Starting deployment...”
+
+            # Create and navigate to project directory
+            mkdir -p mercy-fastapi-stage12-task
+            cd mercy-fastapi-stage12-task
+
+            # Clone the repository into the project directory
+            git clone https://github.com/mercyio/fastapi-book-project.git .
+
+            # Pull latest changes
+            echo “Pulling latest changes...”
+            git fetch --all
+            git pull origin main
+
+            # Setup virtual environment
+            echo “Setting up virtual environment...”
             python3 -m venv venv || exit 1
             source venv/bin/activate || exit 1
+
+            #Install fastapi
             pip install fastapi || exit 1
-            pip install --upgrade pip
-            pip install -r requirements.txt
-            sudo systemctl stop fastapi
+            echo “FastAPI installed successfully”
+
+            # Install dependencies
+            echo “Installing dependencies...”
+            pip install -r requirements.txt || exit 1
+
+            # Stop existing application if running
+            echo “Stopping existing application...”
             killall uvicorn || echo “No existing process found”
-            nohup uvicorn main:app --host 0.0.0.0 --port 8080 > app.log 2>&1 &
+            echo “Application stopped successfully”
+
+            # Start application
+            echo “Starting application...”
+            nohup uvicorn main:app --host 0.0.0.0 --port 8000 > app.log 2>&1 &
             echo “Application started successfully”
